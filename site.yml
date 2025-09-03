@@ -1,0 +1,23 @@
+- name: Bootstrap de serveurs (adaptation du script)
+  hosts: all
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Calculer un ID unique par hôte (index d'inventaire)
+      set_fact:
+        unique_id: "{{ groups['all'].index(inventory_hostname) + 1 }}"
+
+    - name: Construire admin_user et hostname
+      set_fact:
+        admin_user: "admin{{ unique_id }}"
+        desired_hostname: "serveur{{ unique_id }}.{{ domain_name }}"
+
+  roles:
+    - bootstrap
+
+  post_tasks:
+    - name: Afficher résumé
+      debug:
+        msg: |
+          {{ inventory_hostname }} => {{ desired_hostname }} (admin: {{ admin_user }})

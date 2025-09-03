@@ -1,0 +1,19 @@
+domain_name: "istag.lan"
+packages:
+  - sqlite3
+  - openssl
+  - ufw
+  - curl
+  - vim
+  - git
+  - htop
+  - net-tools
+  - nginx
+  - openssh-server
+# Par défaut la clé SSH sera fournie par AWX (survey / credential). Mettre vide si utilisation via AWX.
+ssh_public_key: ""
+ssh_hardening:
+  permit_root_login: "no"
+  password_auth: "no"
+  client_alive_interval: "300"
+  client_alive_count_max: "2"

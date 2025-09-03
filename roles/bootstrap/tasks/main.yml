@@ -1,0 +1,87 @@
+---
+- name: Apt | update cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Apt | install packages
+  apt:
+    name: "{{ packages }}"
+    state: present
+
+- name: Hostname | set hostname
+  hostname:
+    name: "{{ desired_hostname }}"
+
+- name: /etc/hosts | ensure entry
+  lineinfile:
+    path: /etc/hosts
+    regexp: '^127\.0\.1\.1'
+    line: "127.0.1.1 {{ desired_hostname }} {{ desired_hostname.split('.')[0] }}"
+    create: yes
+
+- name: UFW | allow OpenSSH
+  community.general.ufw:
+    rule: allow
+    name: OpenSSH
+
+- name: UFW | allow HTTP (WWW)
+  community.general.ufw:
+    rule: allow
+    name: WWW
+
+- name: UFW | enable
+  community.general.ufw:
+    state: enabled
+    policy: deny
+
+- name: Group | ensure sudo group
+  group:
+    name: sudo
+    state: present
+
+- name: User | create admin user
+  user:
+    name: "{{ admin_user }}"
+    shell: /bin/bash
+    groups: sudo
+    create_home: yes
+
+- name: Authorized key | deploy ssh key for admin
+  authorized_key:
+    user: "{{ admin_user }}"
+    key: "{{ ssh_public_key }}"
+    state: present
+    manage_dir: yes
+
+- name: SSH | PermitRootLogin
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PermitRootLogin'
+    line: "PermitRootLogin {{ ssh_hardening.permit_root_login }}"
+    backrefs: yes
+  notify: Restart ssh
+
+- name: SSH | PasswordAuthentication
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PasswordAuthentication'
+    line: "PasswordAuthentication {{ ssh_hardening.password_auth }}"
+    backrefs: yes
+  notify: Restart ssh
+
+- name: SSH | ClientAliveInterval
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?ClientAliveInterval'
+    line: "ClientAliveInterval {{ ssh_hardening.client_alive_interval }}"
+    backrefs: yes
+  notify: Restart ssh
+
+- name: SSH | ClientAliveCountMax
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?ClientAliveCountMax'
+    line: "ClientAliveCountMax {{ ssh_hardening.client_alive_count_max }}"
+    backrefs: yes
+  notify: Restart ssh

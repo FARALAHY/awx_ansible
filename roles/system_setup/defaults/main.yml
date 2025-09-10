@@ -1,0 +1,8 @@
+fqdn_hostname: "serveur-demo"
+
+admin_user: "admin"
+
+ssh_public_key: "ssh-rsa AAAAB3Nz... ton_user@machine"
+
+permit_root_login: "no"
+password_authentication: "no"

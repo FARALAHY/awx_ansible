@@ -1,0 +1,12 @@
+base_packages:
+  - curl
+  - wget
+  - vim
+  - ufw
+  - unzip
+  - net-tools
+
+ufw_allowed:
+  - ssh
+  - http
+  - https

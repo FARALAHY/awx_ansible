@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Inventaire Ansible - SPAT</title>
+  <style>
+    /* --- Général --- */
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    header img {
+      height: 150px;
+    }
+    h1 {
+      text-align: center;
+      color: #0052cc;
+      font-size: 28px;
+      margin: 20px 0;
+    }
+
+    /* --- Tableau --- */
+    table {
+      width: 90%;
+      margin: 0 auto 30px auto;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px 15px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+      vertical-align: middle;
+    }
+    th {
+      background-color: #0052cc;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    tr:nth-child(even) {
+      background: #f9fbfd;
+    }
+    tr:hover {
+      background: #e6f0ff;
+    }
+
+    /* --- Boutons --- */
+    button {
+      padding: 6px 14px;
+      margin: 2px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.2s;
+      color: #fff;
+    }
+    .delete-btn { background: #d9534f; }
+    .delete-btn:hover { background: #c9302c; }
+    .edit-btn { background: #f0ad4e; }
+    .edit-btn:hover { background: #ec971f; }
+    .config-btn {
+      display: block;
+      width: 300px;
+      margin: 30px auto;
+      padding: 12px 20px;
+      font-size: 16px;
+      background: #28a745;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+    .config-btn:hover { background: #218838; }
+
+    /* --- Formulaires --- */
+    .add-form {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 30px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .add-form input {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 180px;
+    }
+    .add-form button {
+      background: #0052cc;
+      padding: 8px 20px;
+    }
+    .add-form button:hover { background: #0041a8; }
+
+    /* --- Titres --- */
+    h2 {
+      text-align: center;
+      color: #0052cc;
+      margin-bottom: 15px;
+    }
+
+    /* --- Form inline dans tableau --- */
+    form.inline-form {
+      display: inline-flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    form.inline-form input {
+      width: 90px;
+      padding: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img src="https://scontent.ftnr5-1.fna.fbcdn.net/v/t1.6435-9/202282539_341888797290971_834654721441985832_n.png?_nc_cat=111&ccb=1-7&_nc_sid=a5f93a&_nc_ohc=63hEYLLjhL4Q7kNvwF7XTuE&_nc_oc=AdmgiDirSNtKQOLd8x-dedjrIATFf-ThOHqFbRilDprmKdsBBVTEYnftoU-qn1bB4t8&_nc_zt=23&_nc_ht=scontent.ftnr5-1.fna&_nc_gid=mBYXYlPA5j6aD-MhjLitJA&oh=00_AfYjnqK3p8rk8bVk4t3j-bDz0wQk0PI8yxFl_gEsQ3tMKQ&oe=68E1F712" alt="SPAT Logo">
+    <h1>Inventaire Ansible</h1>
+    <img src="https://scontent.ftnr5-1.fna.fbcdn.net/v/t39.30808-6/455723015_474878892115028_9130470246546843612_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=-UWKbZaeFDMQ7kNvwFxHUxK&_nc_oc=Adn-_OQjUnAgO_LEb3dfT6v2tDhpUMkKtumy-lRtvKdFCWKCCm8jdK_4znD_UXQ3LM4&_nc_zt=23&_nc_ht=scontent.ftnr5-1.fna&_nc_gid=unoNtOVE2kZh9XUxj0YAVQ&oh=00_AfbTbnypA4QoJ9nc9irU9F72ViABjPaGcKoycSS5G77aJw&oe=68C07DCC" alt="PACT Logo">
+  </header>
+
+  <h2>Liste des serveurs</h2>
+  <table>
+    <tr>
+      <th>IP</th>
+      <th>host_id</th>
+      <th>Actions</th>
+    </tr>
+    {% for srv in serveurs %}
+    {% set ip = srv.split()[0] %}
+    {% set host_id = srv.split()[1].split('=')[1] %}
+    <tr>
+      <td>{{ ip }}</td>
+      <td>{{ host_id }}</td>
+      <td>
+        <form class="inline-form" action="/modifier/{{ ip }}" method="post">
+          <input type="text" name="new_ip" placeholder="Nouvelle IP" required>
+          <input type="number" name="new_id" placeholder="host_id" required>
+          <button class="edit-btn" type="submit">✏️ Modifier</button>
+        </form>
+        <form class="inline-form" action="/supprimer/{{ ip }}" method="get">
+          <button class="delete-btn" type="submit">❌ Supprimer</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <h2>Ajouter un serveur</h2>
+  <form class="add-form" method="post" action="/ajouter">
+    <input type="text" name="ip" placeholder="IP" required>
+    <input type="number" name="host_id" placeholder="host_id" required>
+    <button type="submit">Ajouter</button>
+  </form>
+
+  <form action="/configurer_tous" method="get">
+    <button class="config-btn" type="submit">Lancer la configuration sur tous les serveurs</button>
+  </form>
+
+</body>
+</html>

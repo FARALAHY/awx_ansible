@@ -1,0 +1,101 @@
+- name: Mise à jour cache APT
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Upgrade complet
+  apt:
+    upgrade: dist
+
+- name: Installer dépendances de base
+  apt:
+    name: "{{ base_packages }}"
+    state: present
+
+- name: Installer Apache, MySQL, PostgreSQL et Git
+  apt:
+    name:
+      - apache2
+      - mysql-server
+      - postgresql
+      - git
+    state: present
+    update_cache: yes
+
+- name: Activer et démarrer Apache
+  service:
+    name: apache2
+    state: started
+    enabled: yes
+
+- name: Activer et démarrer MySQL
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+
+- name: Activer et démarrer PostgreSQL
+  service:
+    name: postgresql
+    state: started
+    enabled: yes
+
+- name: Définir hostname
+  hostname:
+    name: "{{ fqdn_hostname }}"
+
+- name: Autoriser services UFW
+  command: "ufw allow {{ item }}"
+  loop: "{{ ufw_allowed }}"
+
+- name: Activer UFW
+  command: ufw --force enable
+
+- name: Créer utilisateur admin
+  user:
+    name: "{{ admin_user }}"
+    shell: /bin/bash
+    groups: sudo
+    create_home: yes
+
+- name: Ajouter clé SSH
+  authorized_key:
+    user: "{{ admin_user }}"
+    state: present
+    key: "{{ ssh_public_key }}"
+
+- name: Sécuriser SSH (root login)
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PermitRootLogin'
+    line: "PermitRootLogin {{ permit_root_login }}"
+  notify: Restart SSH
+
+- name: Sécuriser SSH (password auth)
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PasswordAuthentication'
+    line: "PasswordAuthentication {{ password_authentication }}"
+  notify: Restart SSH
+
+- name: Keepalive SSH
+  blockinfile:
+    path: /etc/ssh/sshd_config
+    marker: "# {mark} ANSIBLE KEEPALIVE"
+    block: |
+      ClientAliveInterval 300
+      ClientAliveCountMax 2
+  notify: Restart SSH
+
+- name: Déployer bannière MOTD
+  template:
+    src: motd.j2
+    dest: /etc/motd
+
+- name: Infos de connexion
+  debug:
+    msg:
+      - "Nom d'hôte : {{ fqdn_hostname }}"
+      - "IP : {{ ansible_default_ipv4.address }}"
+      - "Utilisateur : {{ admin_user }}"
+      - "SSH : ssh {{ admin_user }}@{{ inventory_hostname }}"

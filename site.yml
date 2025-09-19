@@ -1,11 +1,7 @@
-- hosts: mes_serveurs
-  become: true
-  gather_facts: true
-  serial: "100"
-  vars:
-    host_suffix: "{{ host_id }}"
-    admin_user: "{{ admin_user_prefix }}{{ host_suffix }}"
-    fqdn_hostname: "{{ hostname_prefix }}{{ host_suffix }}.{{ domain }}"
+---
+- name: Configuration serveurs
+  hosts: all
+  become: yes
   roles:
     - system_setup
 
